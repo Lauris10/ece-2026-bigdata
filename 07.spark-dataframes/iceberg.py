@@ -1,0 +1,11 @@
+exec(open("/home/onyxia/work/07.spark-dataframes/setup.py").read())
+
+spark.sql("CREATE NAMESPACE IF NOT EXISTS lab.silver")
+stg_users.writeTo("lab.silver.users").createOrReplace()
+stg_orders.writeTo("lab.silver.orders").createOrReplace()
+spark.sql("SELECT snapshot_id, operation, committed_at FROM lab.silver.orders.snapshots").show(truncate=False)
+spark.sql("SELECT file_path, record_count, file_size_in_bytes FROM lab.silver.orders.files").show(truncate=False)
+assert spark.table("lab.silver.users").count() == users_bronze.count()
+assert spark.table("lab.silver.orders").count() == stg_orders.count()
+print("Iceberg OK")
+spark.stop()
